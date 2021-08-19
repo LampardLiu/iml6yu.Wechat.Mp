@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <ApplicationIcon>favorite_128.ico</ApplicationIcon>
+    <Version>0.0.0819.01-beta</Version>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <AssemblyVersion>0.0.0819.01</AssemblyVersion>
+    <FileVersion>0.0.819.01</FileVersion>
+  </PropertyGroup>
+
+</Project>
