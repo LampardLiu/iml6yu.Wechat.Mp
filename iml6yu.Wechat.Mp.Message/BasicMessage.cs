@@ -1,5 +1,5 @@
-﻿using iml6yu.Wechat.Mp.Message.MessageModels;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -8,23 +8,92 @@ namespace iml6yu.Wechat.Mp.Message
 {
     public class BasicMessage
     {
-        public static async Task<MessageResponse> ReceiveMessageAsync(Stream stream)
+        private Dictionary<BasicMessageType, Func<MessageModel, string>> configs;
+        public BasicMessage()
         {
+            configs = new Dictionary<BasicMessageType, Func<MessageModel, string>>();
+            this.ConfigAction<MessageResponseText>(BasicMessageType.TEXT).
+                ConfigAction<MessageResponseSubscribe>(BasicMessageType.EVENT_SUBSCRIBE).
+                ConfigAction<MessageResponseUnsubscribe>(BasicMessageType.EVENT_UNSUBSCRIBE);
+        }
+        /// <summary>
+        /// 配置不同消息对应的行为
+        /// </summary>
+        /// <param name="messageType">消息类型</param>
+        /// <param name="action">行为</param>
+        /// <returns></returns>
+        public BasicMessage ConfigAction(BasicMessageType messageType, Func<MessageModel, string> action)
+        {
+            if (!configs.ContainsKey(messageType))
+                configs.Add(messageType, action);
+            else
+                configs[messageType] = action;
+            return this;
+        }
 
+        /// <summary>
+        /// 配置不同消息对应的处理行为
+        /// </summary>
+        /// <typeparam name="T">处理该消息的类，必须继承MessageResponse</typeparam>
+        /// <param name="messageType">消息类型</param>
+        /// <returns></returns>
+        public BasicMessage ConfigAction<T>(BasicMessageType messageType) where T : MessageResponse
+        {
+            var instance = (MessageResponse)Activator.CreateInstance<T>();
+            if (!configs.ContainsKey(messageType))
+                configs.Add(messageType, new Func<MessageModel, string>(o =>
+                 {
+                     return instance.Response(o);
+                 }));
+            else
+                configs[messageType] = new Func<MessageModel, string>(o =>
+                {
+                    return instance.Response(o);
+                });
+            return this;
+        }
+
+        public async Task<string> ReceiveMessageAsync(Stream stream)
+        {
             var body = await GetBodyAsync<MessageModel>(stream);
-            switch ((BasicMessageType)Enum.Parse(typeof(BasicMessageType), body.MsgType.ToUpper()))
+            if (body.MsgType == "event")
             {
-                case BasicMessageType.TEXT:
-                    return new MessageResponseText(body as TextMessageModel);
-                case BasicMessageType.EVENT:
-                    var eventBody = body as EventMessageModel;
-                    var eventType = (BasicMessageEventType)Enum.Parse(typeof(BasicMessageEventType), eventBody.Event);
-                    if (eventType == BasicMessageEventType.SUBSCRIBE)
-                        return new MessageResponseSubscribe(eventBody); 
-                    return new MessageResponseUnsubscribe(eventBody);
-                default:
-                    return new MessageResponseText(body as TextMessageModel);
+                switch (body.Event)
+                {
+                    case "subscribe":
+                        if (configs.ContainsKey(BasicMessageType.EVENT_SUBSCRIBE))
+                            return configs[BasicMessageType.EVENT_SUBSCRIBE].Invoke(body);
+                        return string.Empty;
+                    case "unsubscribe":
+                        if (configs.ContainsKey(BasicMessageType.EVENT_UNSUBSCRIBE))
+                            return configs[BasicMessageType.EVENT_UNSUBSCRIBE].Invoke(body);
+                        return string.Empty;
+                    default:
+                        return string.Empty;
+                }
             }
+            else
+            {
+                var type = (BasicMessageType)Enum.Parse(typeof(BasicMessageType), body.MsgType.ToUpper());
+                if (configs.ContainsKey(type))
+                    return configs[type].Invoke(body);
+                return string.Empty;
+            }
+
+
+            //
+            //switch ()
+            //{
+            //    case BasicMessageType.TEXT:
+            //        return new MessageResponseText(body);
+            //    case BasicMessageType.EVENT: 
+            //        var eventType = (BasicMessageEventType)Enum.Parse(typeof(BasicMessageEventType), body.Event.ToUpper());
+            //        if (eventType == BasicMessageEventType.SUBSCRIBE)
+            //            return new MessageResponseSubscribe(body);
+            //        return new MessageResponseUnsubscribe(body);
+            //    default:
+            //        return new MessageResponseText(body);
+            //}
         }
 
         /// <summary>
@@ -33,14 +102,14 @@ namespace iml6yu.Wechat.Mp.Message
         /// <typeparam name="T">类型</typeparam>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static async Task<T> GetBodyAsync<T>(Stream stream) where T : MessageModel
+        private async Task<T> GetBodyAsync<T>(Stream stream) where T : MessageModel
         {
             var content = await ReadStream2StringAsync(stream);
             var body = DeserializeXML<T>(content);
             return body;
         }
 
-        private static async Task<string> ReadStream2StringAsync(Stream stream)
+        private async Task<string> ReadStream2StringAsync(Stream stream)
         {
             if (null == stream)
             {
@@ -52,14 +121,23 @@ namespace iml6yu.Wechat.Mp.Message
             }
         }
 
-        private static T DeserializeXML<T>(string xml) where T : class
+        private T DeserializeXML<T>(string xml) where T : class
         {
-            using (var reader = new StringReader(xml))
+            try
             {
-                var serializer = new XmlSerializer(typeof(T), new XmlRootAttribute("xml"));
-                var result = serializer.Deserialize(reader);
-                return result as T;
+                using (var reader = new StringReader(xml))
+                {
+                    var serializer = new XmlSerializer(typeof(T), new XmlRootAttribute("xml"));
+                    var result = serializer.Deserialize(reader);
+                    return result as T;
+                }
             }
+            catch (Exception ex)
+            {
+                ;
+                throw;
+            }
+
         }
 
         [Obsolete("反序列化后的结果不适用于微信")]

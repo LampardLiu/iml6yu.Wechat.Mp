@@ -4,7 +4,7 @@ using System.Text;
 
 namespace iml6yu.Wechat.Mp.Message
 {
-    public abstract class MessageModel
+    public class MessageModel
     {
         public string ToUserName { get; set; }
         public string FromUserName { get; set; }
