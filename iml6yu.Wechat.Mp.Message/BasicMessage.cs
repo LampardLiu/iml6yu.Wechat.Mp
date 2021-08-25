@@ -1,20 +1,47 @@
-﻿using System;
+﻿using iml6yu.Wechat.Mp.Message.TemplateMessage;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace iml6yu.Wechat.Mp.Message
-{
+{ 
     public class BasicMessage
     {
         private Dictionary<BasicMessageType, Func<MessageModel, string>> configs;
+        /// <summary>
+        /// 发送模板消息的对象
+        /// <code>
+        /// var options = new WechatAccessOption("appid", "appsecret")  ;
+        /// BasicMessage message = new BasicMessage(options, new WechatAccessTokenManager(new AccessTokenCacheManager(new MemoryCache(new MemoryCacheOptions()), new LoggerFactory()), options));
+        /// var result = await message.TemplateMessage.SendOffiAccountMessageAsync(new OffiAccountMessage()
+        /// {
+        ///  TemplateId = "模板id",
+        ///  Url = "详情地址",
+        ///  Data = new MessageContent()
+        ///      {
+        ///         MessageTitle = new MessageContentItem("测试title"),
+        ///         MessageDatas = new List《MessageContentItem》() { new MessageContentItem("数据1"), new MessageContentItem("数据2") },
+        ///         Remark = new MessageContentItem("备注信息")
+        ///         }
+        ///   }, "目标用户OPENID");
+        /// </code> 
+        /// </summary>
+        public TemplateMessageProvider TemplateMessage;
         public BasicMessage()
         {
             configs = new Dictionary<BasicMessageType, Func<MessageModel, string>>();
             this.ConfigAction<MessageResponseText>(BasicMessageType.TEXT).
                 ConfigAction<MessageResponseSubscribe>(BasicMessageType.EVENT_SUBSCRIBE).
                 ConfigAction<MessageResponseUnsubscribe>(BasicMessageType.EVENT_UNSUBSCRIBE);
+        }
+
+        public BasicMessage(WechatAccessOption option, WechatAccessTokenManager tokenManager) : this()
+        {
+            TemplateMessage = new TemplateMessageProvider(option, tokenManager);
         }
         /// <summary>
         /// 配置不同消息对应的行为
@@ -51,6 +78,33 @@ namespace iml6yu.Wechat.Mp.Message
                     return instance.Response(o);
                 });
             return this;
+        }
+
+        /// <summary>
+        /// 验证接入
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="nonce"></param>
+        /// <param name="signature"></param>
+        /// <returns></returns>
+        public bool VerifyJoin(string token, string timestamp, string nonce, string signature)
+        {
+            List<string> list = new List<string>();
+            list.Add(token);
+            list.Add(timestamp);
+            list.Add(nonce);
+            list.Sort();
+            string res = string.Join("", list.ToArray());
+            Byte[] data1ToHash = Encoding.ASCII.GetBytes(res);
+            byte[] hashvalue1 = ((HashAlgorithm)CryptoConfig.CreateFromName("SHA1")).ComputeHash(data1ToHash);
+
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in hashvalue1)
+            {
+                sb.Append(b.ToString("x2"));
+            }
+            return signature == sb.ToString();
         }
 
         public async Task<string> ReceiveMessageAsync(Stream stream)
