@@ -8,10 +8,14 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace iml6yu.Wechat.Mp.Message
-{ 
+{
     public class BasicMessage
     {
-        private Dictionary<BasicMessageType, Func<MessageModel, string>> configs;
+        private Dictionary<BasicMessageType, Func<MessageModel, string>> messageActionConfigs;
+        /// <summary>
+        /// 事件处理行为
+        /// </summary>
+        private Dictionary<BasicEventType, Func<MessageModel, string, string>> eventActionConfigs;
         /// <summary>
         /// 发送模板消息的对象
         /// <code>
@@ -33,10 +37,11 @@ namespace iml6yu.Wechat.Mp.Message
         public TemplateMessageProvider TemplateMessage;
         public BasicMessage()
         {
-            configs = new Dictionary<BasicMessageType, Func<MessageModel, string>>();
+            eventActionConfigs = new Dictionary<BasicEventType, Func<MessageModel, string, string>>();
+            messageActionConfigs = new Dictionary<BasicMessageType, Func<MessageModel, string>>();
             this.ConfigAction<MessageResponseText>(BasicMessageType.TEXT).
-                ConfigAction<MessageResponseSubscribe>(BasicMessageType.EVENT_SUBSCRIBE).
-                ConfigAction<MessageResponseUnsubscribe>(BasicMessageType.EVENT_UNSUBSCRIBE);
+                ConfigAction<MessageResponseSubscribe>(BasicEventType.SUBSCRIBE).
+                ConfigAction<MessageResponseUnsubscribe>(BasicEventType.UNSUBSCRIBE);
         }
 
         public BasicMessage(WechatAccessOption option, WechatAccessTokenManager tokenManager) : this()
@@ -51,10 +56,10 @@ namespace iml6yu.Wechat.Mp.Message
         /// <returns></returns>
         public BasicMessage ConfigAction(BasicMessageType messageType, Func<MessageModel, string> action)
         {
-            if (!configs.ContainsKey(messageType))
-                configs.Add(messageType, action);
+            if (!messageActionConfigs.ContainsKey(messageType))
+                messageActionConfigs.Add(messageType, action);
             else
-                configs[messageType] = action;
+                messageActionConfigs[messageType] = action;
             return this;
         }
 
@@ -67,16 +72,53 @@ namespace iml6yu.Wechat.Mp.Message
         public BasicMessage ConfigAction<T>(BasicMessageType messageType) where T : MessageResponse
         {
             var instance = (MessageResponse)Activator.CreateInstance<T>();
-            if (!configs.ContainsKey(messageType))
-                configs.Add(messageType, new Func<MessageModel, string>(o =>
+            if (!messageActionConfigs.ContainsKey(messageType))
+                messageActionConfigs.Add(messageType, new Func<MessageModel, string>(o =>
                  {
                      return instance.Response(o);
                  }));
             else
-                configs[messageType] = new Func<MessageModel, string>(o =>
+                messageActionConfigs[messageType] = new Func<MessageModel, string>(o =>
                 {
                     return instance.Response(o);
                 });
+            return this;
+        }
+
+        /// <summary>
+        /// 配置不同消息对应的行为
+        /// </summary>
+        /// <param name="messageType">消息类型</param>
+        /// <param name="action">行为</param>
+        /// <returns></returns>
+        public BasicMessage ConfigAction(BasicEventType messageType, Func<MessageModel, string, string> action)
+        {
+            if (!eventActionConfigs.ContainsKey(messageType))
+                eventActionConfigs.Add(messageType, action);
+            else
+                eventActionConfigs[messageType] = action;
+            return this;
+        }
+
+        /// <summary>
+        /// 配置不同消息对应的处理行为
+        /// </summary>
+        /// <typeparam name="T">处理该消息的类，必须继承MessageResponse</typeparam>
+        /// <param name="messageType">消息类型</param>
+        /// <returns></returns>
+        public BasicMessage ConfigAction<T>(BasicEventType messageType) where T : EventResponse
+        {
+            var instance = (EventResponse)Activator.CreateInstance<T>();
+            if (!eventActionConfigs.ContainsKey(messageType))
+                eventActionConfigs.Add(messageType, new Func<MessageModel, string, string>((o, key) =>
+                 {
+                     return instance.Response(o, key);
+                 }));
+            else
+                eventActionConfigs[messageType] = new Func<MessageModel, string, string>((o, key) =>
+                 {
+                     return instance.Response(o, key);
+                 });
             return this;
         }
 
@@ -107,30 +149,46 @@ namespace iml6yu.Wechat.Mp.Message
             return signature == sb.ToString();
         }
 
+        /// <summary>
+        /// 接收和处理数据信息
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         public async Task<string> ReceiveMessageAsync(Stream stream)
         {
             var body = await GetBodyAsync<MessageModel>(stream);
             if (body.MsgType == "event")
             {
-                switch (body.Event)
+                var type = (BasicEventType)Enum.Parse(typeof(BasicEventType), body.Event.ToUpper());
+                if (eventActionConfigs.ContainsKey(type))
                 {
-                    case "subscribe":
-                        if (configs.ContainsKey(BasicMessageType.EVENT_SUBSCRIBE))
-                            return configs[BasicMessageType.EVENT_SUBSCRIBE].Invoke(body);
-                        return string.Empty;
-                    case "unsubscribe":
-                        if (configs.ContainsKey(BasicMessageType.EVENT_UNSUBSCRIBE))
-                            return configs[BasicMessageType.EVENT_UNSUBSCRIBE].Invoke(body);
-                        return string.Empty;
-                    default:
-                        return string.Empty;
+                    var result = eventActionConfigs[type].Invoke(body, body.EventKey);
+                    if (result == "success")
+                        return await ReadStream2StringAsync(stream);
+                    return result;
                 }
+
+                return string.Empty;
+
+                //switch (body.Event)
+                //{
+                //    case "subscribe":
+                //        if (messageActionConfigs.ContainsKey(BasicEventType.SUBSCRIBE))
+                //            return messageActionConfigs[BasicMessageType.EVENT_SUBSCRIBE].Invoke(body);
+                //        return string.Empty;
+                //    case "unsubscribe":
+                //        if (messageActionConfigs.ContainsKey(BasicMessageType.EVENT_UNSUBSCRIBE))
+                //            return messageActionConfigs[BasicMessageType.EVENT_UNSUBSCRIBE].Invoke(body);
+                //        return string.Empty;
+                //    default:
+                //        return string.Empty;
+                //}
             }
             else
             {
                 var type = (BasicMessageType)Enum.Parse(typeof(BasicMessageType), body.MsgType.ToUpper());
-                if (configs.ContainsKey(type))
-                    return configs[type].Invoke(body);
+                if (messageActionConfigs.ContainsKey(type))
+                    return messageActionConfigs[type].Invoke(body);
                 return string.Empty;
             }
 

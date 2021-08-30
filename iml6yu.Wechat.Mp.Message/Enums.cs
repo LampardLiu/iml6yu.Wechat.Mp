@@ -38,17 +38,20 @@ namespace iml6yu.Wechat.Mp.Message
         /// 事件
         /// </summary>
         EVENT,
-        /// <summary>
-        /// 订阅
-        /// </summary>
-        EVENT_SUBSCRIBE,
-        /// <summary>
-        /// 取消订阅
-        /// </summary>
-        EVENT_UNSUBSCRIBE
+        ///// <summary>
+        ///// 订阅
+        ///// </summary>
+        //EVENT_SUBSCRIBE,
+        ///// <summary>
+        ///// 取消订阅
+        ///// </summary>
+        //EVENT_UNSUBSCRIBE
     }
 
-    internal enum BasicMessageEventType
+    /// <summary>
+    /// 事件行为
+    /// </summary>
+    public enum BasicEventType
     {
         /// <summary>
         /// 订阅
@@ -57,6 +60,10 @@ namespace iml6yu.Wechat.Mp.Message
         /// <summary>
         /// 取消订阅
         /// </summary>
-        UNSUBSCRIBE
+        UNSUBSCRIBE,
+        /// <summary>
+        /// 菜单点击
+        /// </summary>
+        CLICK
     }
 }

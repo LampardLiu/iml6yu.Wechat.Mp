@@ -16,6 +16,10 @@ namespace iml6yu.Wechat.Mp.Message
         /// </summary>
         public long MsgId { get; set; }
         public string Event { get; set; }
+        /// <summary>
+        /// 一些菜单Click时后的Key
+        /// </summary>
+        public string EventKey { get; set; }
 
     }
 }

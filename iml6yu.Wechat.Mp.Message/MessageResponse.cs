@@ -17,6 +17,20 @@ namespace iml6yu.Wechat.Mp.Message
         /// <returns></returns>
         public abstract string Response(MessageModel message, string content = null);
     }
+    /// <summary>
+    /// 事件消息回复
+    /// </summary>
+    public abstract class EventResponse
+    {
+        /// <summary>
+        /// 回复
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="key">按钮Key</param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public abstract string Response(MessageModel message, string key, string content = null);
+    }
 
     /// <summary>
     /// 文本消息回复类
@@ -44,7 +58,7 @@ namespace iml6yu.Wechat.Mp.Message
     /// <summary>
     /// 订阅消息回复类
     /// </summary>
-    public class MessageResponseSubscribe : MessageResponse
+    public class MessageResponseSubscribe : EventResponse
     {
         /// <summary>
         /// 回复
@@ -52,7 +66,7 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="message"></param>
         /// <param name="content"></param>
         /// <returns></returns>
-        public override string Response(MessageModel message, string content = null)
+        public override string Response(MessageModel message, string key, string content = null)
         {
             return $@"<xml>
 <ToUserName><![CDATA[{message.FromUserName}]]></ToUserName>
@@ -68,7 +82,7 @@ namespace iml6yu.Wechat.Mp.Message
     /// <summary>
     /// 取消订阅回复类
     /// </summary>
-    public class MessageResponseUnsubscribe : MessageResponse
+    public class MessageResponseUnsubscribe : EventResponse
     {
         /// <summary>
         /// 回复
@@ -76,7 +90,7 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="message"></param>
         /// <param name="content"></param>
         /// <returns></returns>
-        public override string Response(MessageModel message, string content = null)
+        public override string Response(MessageModel message, string key, string content = null)
         {
             return $@"<xml>
 <ToUserName><![CDATA[{message.FromUserName}]]></ToUserName>
