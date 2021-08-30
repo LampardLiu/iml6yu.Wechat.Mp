@@ -3,17 +3,17 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
     <ApplicationIcon>favorite_128.ico</ApplicationIcon>
-    <Version>1.0.1.0825-rc21082505</Version>
+    <Version>1.0.1.0830-rc21083001</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.0.1.0825</AssemblyVersion>
-    <FileVersion>1.0.1.0825</FileVersion>
+    <AssemblyVersion>1.0.1.0830</AssemblyVersion>
+    <FileVersion>1.0.1.0830</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>favorite_128.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/LampardLiu/iml6yu.Wechat.Mp</RepositoryUrl>
     <PackageReleaseNotes>测试版</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <Description>微信公众号消息处理类库,增加模板消息
+    <Description>微信公众号消息处理类库,增加模板消息,增加自定义菜单功能，增加菜单CLICK事件处理能力
 （从Sugar.Utils.WeChat类库演变而来）</Description>
     <Copyright>@iml6yu</Copyright>
   </PropertyGroup>
