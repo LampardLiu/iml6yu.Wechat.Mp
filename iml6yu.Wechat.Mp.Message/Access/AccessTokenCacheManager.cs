@@ -41,7 +41,7 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="secret"></param>
         public void Add(string appid, string secret)
         {
-            var option = new MemoryCacheEntryOptions() { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(365000), Priority = CacheItemPriority.NeverRemove };
+            var option = new MemoryCacheEntryOptions() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(6200), Priority = CacheItemPriority.Normal };
             option.RegisterPostEvictionCallback((key, value, reason, state) =>
             {
                 logger.LogDebug($"密钥缓存失效。键：{key},值：{value},原因：{reason.ToString()},状态：{state}");

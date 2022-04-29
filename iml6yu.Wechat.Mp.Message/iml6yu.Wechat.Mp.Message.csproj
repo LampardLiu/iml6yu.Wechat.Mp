@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
     <ApplicationIcon>favorite_128.ico</ApplicationIcon>
-    <Version>1.0.2.0429-rc220429001</Version>
+    <Version>1.0.2.0429-rc220429002</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyVersion>1.0.1.0830</AssemblyVersion>
     <FileVersion>1.0.1.0830</FileVersion>
