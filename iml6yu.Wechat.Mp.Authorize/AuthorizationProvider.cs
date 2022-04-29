@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -12,6 +13,7 @@ namespace iml6yu.Wechat.Mp.Authorization
     {
         private string appid;
         private string appsecret;
+        private static Dictionary<string, string> urlParameterRedirct = new Dictionary<string, string>();
         public AuthorizationProvider(string appid, string appsecret)
         {
             this.appid = appid;
@@ -25,7 +27,36 @@ namespace iml6yu.Wechat.Mp.Authorization
         /// <returns></returns>
         public string GetCodeUrl(string redirect)
         {
-            return $"https://open.weixin.qq.com/connect/oauth2/authorize?appid={appid}&redirect_uri={HttpUtility.UrlEncode(redirect)}&response_type=code&scope=snsapi_base&state=iml6yu#wechat_redirect";
+            return $"https://open.weixin.qq.com/connect/oauth2/authorize?appid={appid}&redirect_uri={HttpUtility.UrlEncode(redirect)}&response_type=code&scope=snsapi_userinfo&state=iml6yu#wechat_redirect";
+        }
+
+        /// <summary>
+        /// 当需要二次redirect时候，并且urlParameter中包含hash或者参数时使用这个
+        /// </summary>
+        /// <param name="redirect">此时的登录返回url会默认增加一个string类型的参数
+        /// <para>
+        /// 如果原来的地址时 http://xxxx.com/callback 将会编程 http://xxxx.com/callback/guid的形式
+        /// </para>
+        /// </param>
+        /// <param name="urlParameter">当微信登录完成后需要最终Redirect到用户的url，js端需要使用encodeURIComponent对url进行编码</param>
+        /// <returns></returns>
+        public string GetCodeUrl(string redirect,string urlParameter)
+        {
+            var guid = Guid.NewGuid();
+            urlParameterRedirct.Add(guid.ToString(), urlParameter);
+            return $"https://open.weixin.qq.com/connect/oauth2/authorize?appid={appid}&redirect_uri={HttpUtility.UrlEncode(redirect+$"/{guid}")}&response_type=code&scope=snsapi_userinfo&state=iml6yu#wechat_redirect";
+        }
+
+        /// <summary>
+        /// 获取返回url
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns></returns>
+        public string GetRedirctUrlParameter(string guid)
+        {
+            if(urlParameterRedirct.ContainsKey(guid))
+                return HttpUtility.UrlDecode(urlParameterRedirct[guid]);
+            return "";
         }
 
         /// <summary>
@@ -126,7 +157,6 @@ namespace iml6yu.Wechat.Mp.Authorization
             WebClient wc = new WebClient();
             wc.Encoding = Encoding.UTF8;
             var get_result = wc.DownloadString(baseUserInfoUrl);
-
             if (!get_result.Contains("error"))
             {
                 var wxApi_ResultModel = JsonConvert.DeserializeObject<WxUserInfo>(get_result);

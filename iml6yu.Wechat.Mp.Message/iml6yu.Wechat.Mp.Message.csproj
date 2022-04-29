@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
     <ApplicationIcon>favorite_128.ico</ApplicationIcon>
-    <Version>1.0.1.0830-rc21083001</Version>
+    <Version>1.0.2.0429-rc220429001</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyVersion>1.0.1.0830</AssemblyVersion>
     <FileVersion>1.0.1.0830</FileVersion>
@@ -16,6 +16,7 @@
     <Description>微信公众号消息处理类库,增加模板消息,增加自定义菜单功能，增加菜单CLICK事件处理能力
 （从Sugar.Utils.WeChat类库演变而来）</Description>
     <Copyright>@iml6yu</Copyright>
+    <Authors>iml6yu</Authors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">

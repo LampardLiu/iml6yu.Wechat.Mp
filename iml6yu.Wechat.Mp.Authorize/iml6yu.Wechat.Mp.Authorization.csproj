@@ -10,7 +10,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageIcon>favorite_128.png</PackageIcon>
     <PackageIconUrl />
-    <Version>1.0.2.0224-rc22022403</Version>
+    <Version>1.0.2.0301-rc22030101</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
