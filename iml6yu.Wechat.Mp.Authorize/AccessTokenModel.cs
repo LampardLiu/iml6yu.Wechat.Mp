@@ -4,6 +4,7 @@ namespace iml6yu.Wechat.Mp.Authorization
 {
     public class AccessTokenModel
     {
+ 
         [JsonProperty("access_token")]
         public string AccessToken { get; set; }
 

@@ -15,7 +15,7 @@ namespace iml6yu.Wechat.Mp.Message
         /// <summary>
         /// token超时回收触发
         /// </summary>
-        public event Action<string> TokenEvictioned;
+        public event Action<string> TokenEvictioned; 
 
         public AccessTokenCacheManager(IMemoryCache memoryCache, ILoggerFactory loggerFactory)
         {
@@ -76,7 +76,7 @@ namespace iml6yu.Wechat.Mp.Message
         /// <returns></returns> 
         private MemoryCacheEntryOptions GetOptions(AccessTokenInfo token)
         {
-            var option = new MemoryCacheEntryOptions() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(token.ExpiresIn) };
+            var option = new MemoryCacheEntryOptions() { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(token.ExpiresIn * 0.9) };//
             option.RegisterPostEvictionCallback((key, value, reason, state) =>
             {
                 TokenEvictioned?.Invoke(key.ToString());

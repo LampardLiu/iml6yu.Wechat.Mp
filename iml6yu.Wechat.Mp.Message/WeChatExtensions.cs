@@ -22,11 +22,11 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="acOption">wechat的配置信息</param>
         /// <param name="configMessageActions">基础消息行为配置</param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection UseWechatMessage(this IServiceCollection services, Action<WechatAccessOption> acOption,Action<BasicMessage> configMessageActions)
+        public static IServiceCollection UseWechatMessage(this IServiceCollection services, Action<WechatAccessOption> acOption, Action<BasicMessage> configMessageActions)
         {
             WechatAccessOption option = GetOption(acOption);
             return AddBasicMessage(services, configMessageActions, option);
-        } 
+        }
 
         /// <summary>
         /// 添加消息处理机制，同时支持模板消息
@@ -47,10 +47,10 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="services">IServiceCollection</param>
         /// <param name="acOption">配置信息</param>
         /// <returns></returns>
-        public static IServiceCollection UseWechatTemplateMessage(this IServiceCollection services, Action<WechatAccessOption> acOption)
+        public static IServiceCollection UseWechatTemplateMessage(this IServiceCollection services, Action<WechatAccessOption> acOption, Action<string, AccessTokenInfo> refreshAction, Action<string> evictionedAction)
         {
             WechatAccessOption option = GetOption(acOption);
-            return AddWechatTemplateMessage(services, option);
+            return AddWechatTemplateMessage(services, option, refreshAction,evictionedAction);
         }
 
 
@@ -60,10 +60,10 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="services">IServiceCollection</param>
         /// <param name="section">配置节点名称</param>
         /// <returns></returns>
-        public static IServiceCollection UseWechatTemplateMessage(this IServiceCollection services, IConfigurationSection section)
+        public static IServiceCollection UseWechatTemplateMessage(this IServiceCollection services, IConfigurationSection section, Action<string, AccessTokenInfo> refreshAction, Action<string> evictionedAction)
         {
             WechatAccessOption option = GetSectionOption(section);
-            return AddWechatTemplateMessage(services, option);
+            return AddWechatTemplateMessage(services, option, refreshAction, evictionedAction);
         }
 
         private static WechatAccessOption GetOption(Action<WechatAccessOption> acOption)
@@ -110,12 +110,21 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="services"></param>
         /// <param name="option"></param>
         /// <returns></returns> 
-        private static IServiceCollection AddWechatTemplateMessage(this IServiceCollection services, WechatAccessOption option)
+        private static IServiceCollection AddWechatTemplateMessage(this IServiceCollection services, WechatAccessOption option, Action<string, AccessTokenInfo> refreshAction, Action<string> evictionedAction)
         {
             AddWechatAccessTokenManager(services, option);
-            var tokenManager = services.First(t => t.ServiceType == typeof( WechatAccessTokenManager)).ImplementationInstance as WechatAccessTokenManager;
+            var tokenManager = services.First(t => t.ServiceType == typeof(WechatAccessTokenManager)).ImplementationInstance as WechatAccessTokenManager;
             if (tokenManager == null)
                 throw new WechatException("在此之前没有添加WechatAccessTokenManager，请添加WechatAccessTokenManager后在添加WechatTemplateMessage单例");
+            tokenManager.RefreshTokened += (appid, token) =>
+            {
+                refreshAction?.Invoke(appid, token);
+            };
+            tokenManager.TokenEvictioned += (appid) =>
+            {
+                evictionedAction?.Invoke(appid);
+            };
+
             services.AddSingleton(new TemplateMessageProvider(option, tokenManager));
             return services;
         }
@@ -129,9 +138,9 @@ namespace iml6yu.Wechat.Mp.Message
         private static IServiceCollection AddWechatAccessTokenManager(IServiceCollection services, WechatAccessOption option)
         {
             AddAccessTokenManager(services);
-            if (services.Any(t => t.ServiceType == typeof( WechatAccessTokenManager))) return services;
+            if (services.Any(t => t.ServiceType == typeof(WechatAccessTokenManager))) return services;
             var cacheManager = services.First(t => t.ServiceType == typeof(AccessTokenCacheManager)).ImplementationInstance as AccessTokenCacheManager;
-            services.AddSingleton(new  WechatAccessTokenManager(cacheManager, option));
+            services.AddSingleton(new WechatAccessTokenManager(cacheManager, option));
             return services;
         }
 
@@ -148,7 +157,7 @@ namespace iml6yu.Wechat.Mp.Message
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
             services.AddSingleton(memoryCache);
             //services.AddSingleton<AccessTokenCacheManager>();
-            services.AddSingleton (new AccessTokenCacheManager(memoryCache, new LoggerFactory()));
+            services.AddSingleton(new AccessTokenCacheManager(memoryCache, new LoggerFactory()));
         }
     }
 }

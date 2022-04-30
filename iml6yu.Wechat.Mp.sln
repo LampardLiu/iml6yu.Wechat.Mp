@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31320.298
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32414.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "iml6yu.Wechat.Mp.Message", "iml6yu.Wechat.Mp.Message\iml6yu.Wechat.Mp.Message.csproj", "{D0D4C166-F2C6-47E0-8A90-738E79028B49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "iml6yu.Wechat.Mp.Message.Test", "iml6yu.Wechat.Mp.Message.Test\iml6yu.Wechat.Mp.Message.Test.csproj", "{4F34363B-8453-4EE1-9B8A-D969A2D74376}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "iml6yu.Wechat.Mp.Authorization", "iml6yu.Wechat.Mp.Authorize\iml6yu.Wechat.Mp.Authorization.csproj", "{2D5AEA89-B0F0-4A92-97AA-B6C390014627}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "iml6yu.Wechat.Mp.Authorization", "iml6yu.Wechat.Mp.Authorize\iml6yu.Wechat.Mp.Authorization.csproj", "{2D5AEA89-B0F0-4A92-97AA-B6C390014627}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerService1", "WorkerService1\WorkerService1.csproj", "{0FD9F074-370E-431B-BEED-94B0FCFFED48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{2D5AEA89-B0F0-4A92-97AA-B6C390014627}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D5AEA89-B0F0-4A92-97AA-B6C390014627}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D5AEA89-B0F0-4A92-97AA-B6C390014627}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD9F074-370E-431B-BEED-94B0FCFFED48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD9F074-370E-431B-BEED-94B0FCFFED48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD9F074-370E-431B-BEED-94B0FCFFED48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD9F074-370E-431B-BEED-94B0FCFFED48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

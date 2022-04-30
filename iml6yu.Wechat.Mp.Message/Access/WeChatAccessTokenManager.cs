@@ -1,4 +1,5 @@
 ﻿using Sugar.Utils.Http;
+using System;
 
 namespace iml6yu.Wechat.Mp.Message
 {
@@ -8,6 +9,14 @@ namespace iml6yu.Wechat.Mp.Message
     public class WechatAccessTokenManager
     {
         private AccessTokenCacheManager cacheManager;
+        /// <summary>
+        /// token被刷新了
+        /// </summary>
+        public event Action<string, AccessTokenInfo> RefreshTokened;
+        /// <summary>
+        /// token超时回收触发
+        /// </summary>
+        public event Action<string> TokenEvictioned;
         /// <summary>
         /// 
         /// </summary>
@@ -72,7 +81,11 @@ namespace iml6yu.Wechat.Mp.Message
         private async System.Threading.Tasks.Task<AccessTokenInfo> RequestAccessTokenAsync(string appid, string appscret)
         {
             var accesstoken = await HttpHelper.GetJsonAsync<AccessTokenInfo>("https://api.weixin.qq.com/cgi-bin/token", new { grant_type = "client_credential", appid = appid, secret = appscret });
-            cacheManager.Add(appid, accesstoken);
+            if (accesstoken != null)
+            {
+                cacheManager.Add(appid, accesstoken);
+                this.RefreshTokened?.Invoke(appid, accesstoken);
+            }
             return accesstoken;
         }
 
@@ -82,7 +95,8 @@ namespace iml6yu.Wechat.Mp.Message
         /// <param name="appid"></param>
         private void CacheManager_TokenEvictioned(string appid)
         {
-            RequestAccessTokenAsync(appid, cacheManager.GetSecret(appid)).Wait(60);
+            TokenEvictioned?.Invoke(appid);
+            RequestAccessTokenAsync(appid, cacheManager.GetSecret(appid)).Wait(6000);
         }
     }
 }
