@@ -36,6 +36,19 @@ namespace iml6yu.Wechat.Mp.Message.TemplateMessage
         }
 
         /// <summary>
+        /// 发送公众号模板消息
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="message"></param>
+        /// <param name="openids"></param>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<Dictionary<string, TemplateMessageResult>> SendOffiAccountMessageAsync(AccessTokenInfo token, OffiAccountMessage message, params string[] openids)
+        {
+            var result = await offiAccountTemplate.SendTemplateMessageAsync(token.AccessToken, message, openids);
+            return result;
+        }
+
+        /// <summary>
         /// 发送公众号模板消息（默认配置）
         /// </summary>
         /// <param name="message"></param>

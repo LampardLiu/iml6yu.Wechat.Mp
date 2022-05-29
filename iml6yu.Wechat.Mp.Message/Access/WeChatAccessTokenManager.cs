@@ -78,7 +78,7 @@ namespace iml6yu.Wechat.Mp.Message
             cacheManager.Add(option.AppId, option.AppSecret);
         }
 
-        private async System.Threading.Tasks.Task<AccessTokenInfo> RequestAccessTokenAsync(string appid, string appscret)
+        public async System.Threading.Tasks.Task<AccessTokenInfo> RequestAccessTokenAsync(string appid, string appscret)
         {
             var accesstoken = await HttpHelper.GetJsonAsync<AccessTokenInfo>("https://api.weixin.qq.com/cgi-bin/token", new { grant_type = "client_credential", appid = appid, secret = appscret });
             if (accesstoken != null)
